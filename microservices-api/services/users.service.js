@@ -176,22 +176,6 @@ module.exports = {
 				return await this.transformEntity(doc, true, ctx.meta.token);
 			},
 		},
-
-		externalAuthHandler: {
-			auth: "required",
-			rest: "GET /auth",
-			cache: {
-				keys: ["#userID"],
-			},
-			async handler(ctx) {
-				const user = await this.getById(ctx.meta.userID);
-				if (!user)
-					throw new MoleculerClientError("User not found!", 400);
-
-				const doc = await this.transformDocuments(ctx, {}, user);
-				return await this.transformEntity(doc, true, ctx.meta.token);
-			},
-		},
 	},
 
 	/**
