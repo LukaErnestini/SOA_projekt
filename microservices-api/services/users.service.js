@@ -163,7 +163,7 @@ module.exports = {
 		 */
 		me: {
 			auth: "required",
-			rest: "GET /user",
+			rest: "GET /me",
 			cache: {
 				keys: ["#userID"],
 			},
@@ -264,6 +264,27 @@ module.exports = {
 
 				const doc = await this.transformDocuments(ctx, {}, user);
 				return await this.transformProfile(ctx, doc, ctx.meta.user);
+			},
+		},
+
+		/**
+		 * Remove self user
+		 * Auth is required!
+		 *
+		 * @actions
+		 *
+		 * @returns
+		 */
+		// TODO fix, not working: validation_error: id field is required
+		remove: {
+			auth: "required",
+			rest: "DELETE /me",
+			async handler(ctx) {
+				const json = await this.adapter.removeById(
+					ctx.meta.userID.toString()
+				);
+				await this.entityChanged("removed", json, ctx);
+				return json;
 			},
 		},
 	},
