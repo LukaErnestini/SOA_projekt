@@ -153,6 +153,26 @@ module.exports = {
 			},
 		},
 
+    /**
+		 * Used by other services to authorize routes.
+		 * Auth is required!
+		 *
+		 * @actions
+		 *
+		 * @returns {Object} User entity
+		 */
+    externalAuthentication: {
+      auth: "required",
+			rest: "GET /auth",
+      async handler(ctx) {
+				const user = await this.getById(ctx.meta.userID);
+				if (!user)
+					throw new MoleculerClientError("User not found!", 400);
+
+				const doc = await this.transformDocuments(ctx, {}, user);
+				return await this.transformEntity(doc, true, ctx.meta.token);
+    }
+
 		/**
 		 * Get current user entity.
 		 * Auth is required!
