@@ -176,6 +176,96 @@ module.exports = {
 				return await this.transformEntity(doc, true, ctx.meta.token);
 			},
 		},
+
+		/**
+		 * Update current user entity.
+		 * Auth is required!
+		 *
+		 * @actions
+		 *
+		 * @param {Object} user - Modified fields
+		 * @returns {Object} User entity
+		 */
+		updateMyself: {
+			auth: "required",
+			rest: "PUT /user",
+			params: {
+				user: {
+					type: "object",
+					props: {
+						firstname: { type: "string", min: 2, optional: true },
+						lastname: { type: "string", min: 2, optional: true },
+						password: { type: "string", min: 6, optional: true },
+						email: { type: "email", optional: true },
+						bio: { type: "string", optional: true },
+						image: { type: "string", optional: true },
+					},
+				},
+			},
+			async handler(ctx) {
+				const newData = ctx.params.user;
+				if (newData.email) {
+					const found = await this.adapter.findOne({
+						email: newData.email,
+					});
+					if (
+						found &&
+						found._id.toString() !== ctx.meta.userID.toString()
+					)
+						throw new MoleculerClientError(
+							"Email is exist!",
+							422,
+							"",
+							[{ field: "email", message: "is exist" }]
+						);
+				}
+				newData.updatedAt = new Date();
+				const update = {
+					$set: newData,
+				};
+				const doc = await this.adapter.updateById(
+					ctx.meta.userID,
+					update
+				);
+
+				const user = await this.transformDocuments(ctx, {}, doc);
+				const json = await this.transformEntity(
+					user,
+					true,
+					ctx.meta.token
+				);
+				await this.entityChanged("updated", json, ctx);
+				return json;
+			},
+		},
+
+		/**
+		 * Get a user profile.
+		 *
+		 * @actions
+		 *
+		 * @param {String} username - Username
+		 * @returns {Object} User entity
+		 */
+		profile: {
+			cache: {
+				keys: ["#userID", "email"],
+			},
+			rest: "GET /profiles/:id",
+			params: {
+				id: { type: "string" },
+			},
+			async handler(ctx) {
+				const user = await this.adapter.findOne({
+					_id: ctx.params.id,
+				});
+				if (!user)
+					throw new MoleculerClientError("User not found!", 404);
+
+				const doc = await this.transformDocuments(ctx, {}, user);
+				return await this.transformProfile(ctx, doc, ctx.meta.user);
+			},
+		},
 	},
 
 	/**
