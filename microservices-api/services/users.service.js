@@ -315,14 +315,11 @@ module.exports = {
 		 *
 		 * @returns
 		 */
-		// TODO fix, not working: validation_error: id field is required
-		remove: {
+		removeSelf: {
 			auth: "required",
 			rest: "DELETE /me",
 			async handler(ctx) {
-				const json = await this.adapter.removeById(
-					ctx.meta.userID.toString()
-				);
+				const json = await this.adapter.removeById(ctx.meta.userID);
 				await this.entityChanged("removed", json, ctx);
 				return json;
 			},
