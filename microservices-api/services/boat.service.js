@@ -159,7 +159,8 @@ module.exports = {
 			auth: "required",
 			rest: "GET /mine",
 			async handler(ctx) {
-				const doc = await this.adapter.find({
+				// TODO ERROR: find() query not working !! only with findOne it works, otherwise ignored
+				const doc = await this.adapter.findOne({
 					ownerID: ctx.meta.userID,
 				});
 				const json = await this.transformDocuments(ctx, {}, doc);
