@@ -4,13 +4,11 @@ const { MoleculerClientError } = require("moleculer").Errors;
 const { ForbiddenError } = require("moleculer-web").Errors;
 
 const _ = require("lodash");
-const slug = require("slug");
 const DbService = require("../mixins/db.mixin");
-const CacheCleanerMixin = require("../mixins/cache.cleaner.mixin");
 
 module.exports = {
 	name: "boat",
-	mixins: [DbService("articles")],
+	mixins: [DbService("boats")],
 
 	/**
 	 * Default settings
@@ -37,7 +35,7 @@ module.exports = {
 			make: { type: "string", min: 2 },
 			model: { type: "string", min: 4 },
 			year: { type: "number", min: 1970, integer: true },
-			color: { optional: true },
+			color: { type: "string", optional: true },
 			hasTrailer: { type: "boolean", optional: true },
 			registrationNumber: { type: "string", min: 5, optional: true },
 		},
@@ -46,7 +44,37 @@ module.exports = {
 	/**
 	 * Actions
 	 */
-	actions: {},
+	actions: {
+		/**
+		 * Create a new boat.
+		 * Auth is required!
+		 *
+		 * @actions
+		 * @param {Object} boat - Boat entity
+		 *
+		 * @returns {Object} Created entity
+		 */
+		create: {
+			auth: "required",
+			rest: "POST /",
+			params: {
+				boat: { type: "object" },
+			},
+			async handler(ctx) {
+				let entity = ctx.params.boat;
+				await this.validateEntity(entity);
+
+				entity.ownerID = ctx.meta.userId;
+				entity.createdAt = new Date();
+				entity.updatedAt = new Date();
+
+				const doc = await this.adapter.insert(entity);
+				let boat = await this.transformDocuments(ctx, {}, doc);
+				await this.entityChanged("created", boat, ctx);
+				return boat;
+			},
+		},
+	},
 
 	/**
 	 * Methods
