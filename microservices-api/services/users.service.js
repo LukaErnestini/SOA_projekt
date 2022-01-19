@@ -289,6 +289,26 @@ module.exports = {
 		},
 
 		/**
+		 * Get all users.
+		 *
+		 * @actions
+		 *
+		 * @param {String} username - Username
+		 * @returns {Object} User entity
+		 */
+		getall: {
+			rest: "GET /",
+			async handler(ctx) {
+				const users = await this.adapter.findOne();
+				if (!users)
+					throw new MoleculerClientError("Users not found!", 404);
+
+				const doc = await this.transformDocuments(ctx, {}, users);
+				return await this.transformProfile(ctx, doc, ctx.meta.user);
+			},
+		},
+
+		/**
 		 * Remove self user
 		 * Auth is required!
 		 *
