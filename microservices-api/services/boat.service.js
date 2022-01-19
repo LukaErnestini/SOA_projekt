@@ -64,7 +64,7 @@ module.exports = {
 				let entity = ctx.params.boat;
 				await this.validateEntity(entity);
 
-				entity.ownerID = ctx.meta.userId;
+				entity.ownerID = ctx.meta.userID;
 				entity.createdAt = new Date();
 				entity.updatedAt = new Date();
 
@@ -116,7 +116,8 @@ module.exports = {
 				if (!boat)
 					throw new MoleculerClientError("Boat not found", 404);
 
-				if (boat.author !== ctx.meta.userId) throw new ForbiddenError();
+				if (boat.ownerID !== ctx.meta.userId)
+					throw new ForbiddenError();
 
 				const update = {
 					$set: newData,
@@ -144,7 +145,25 @@ module.exports = {
 			async handler(ctx) {
 				const doc = await this.adapter.find({});
 				const json = await this.transformDocuments(ctx, {}, doc);
-				return false;
+				return json;
+			},
+		},
+
+		/**
+		 * List all boats
+		 * Auth is required!
+		 * @actions
+		 *
+		 */
+		userBoats: {
+			auth: "required",
+			rest: "GET /mine",
+			async handler(ctx) {
+				const doc = await this.adapter.find({
+					ownerID: ctx.meta.userID,
+				});
+				const json = await this.transformDocuments(ctx, {}, doc);
+				return json;
 			},
 		},
 	},
