@@ -74,67 +74,78 @@ module.exports = {
 				return boat;
 			},
 		},
-	},
 
-	/**
-	 * Update a boat.
-	 * Auth is required!
-	 *
-	 * @actions
-	 * @param {String} id - Boat ID
-	 * @param {Object} boat - Boat modified fields
-	 *
-	 * @returns {Object} Updated entity
-	 */
-	update: {
-		auth: "required",
-		rest: "PUT /:id",
-		params: {
-			id: { type: "string" },
-			boat: {
-				type: "object",
-				props: {
-					make: { type: "string", min: 2 },
-					model: { type: "string", min: 4 },
-					year: { type: "number", min: 1970, integer: true },
-					color: { type: "string", optional: true },
-					hasTrailer: { type: "boolean", optional: true },
-					registrationNumber: {
-						type: "string",
-						min: 5,
-						optional: true,
+		/**
+		 * Update a boat.
+		 * Auth is required!
+		 *
+		 * @actions
+		 * @param {String} id - Boat ID
+		 * @param {Object} boat - Boat modified fields
+		 *
+		 * @returns {Object} Updated entity
+		 */
+		update: {
+			auth: "required",
+			rest: "PUT /:id",
+			params: {
+				id: { type: "string" },
+				boat: {
+					type: "object",
+					props: {
+						make: { type: "string", min: 2 },
+						model: { type: "string", min: 4 },
+						year: { type: "number", min: 1970, integer: true },
+						color: { type: "string", optional: true },
+						hasTrailer: { type: "boolean", optional: true },
+						registrationNumber: {
+							type: "string",
+							min: 5,
+							optional: true,
+						},
 					},
 				},
 			},
+			async handler(ctx) {
+				let newData = ctx.params.boat;
+				newData.updatedAt = new Date();
+
+				const boat = await this.findOne({
+					_id: ctx.params.id,
+				});
+				if (!boat)
+					throw new MoleculerClientError("Boat not found", 404);
+
+				if (boat.author !== ctx.meta.userId) throw new ForbiddenError();
+
+				const update = {
+					$set: newData,
+				};
+
+				const doc = await this.adapter.updateById(
+					ctx.params.id,
+					update
+				);
+				const json = await this.transformDocuments(ctx, {}, doc);
+				this.entityChanged("updated", json, ctx);
+				return json;
+			},
 		},
-		async handler(ctx) {
-			let newData = ctx.params.boat;
-			newData.updatedAt = new Date();
 
-			const boat = await this.findOne({
-				_id: ctx.params.id,
-			});
-			if (!boat) throw new MoleculerClientError("Boat not found", 404);
-
-			if (boat.author !== ctx.meta.userId) throw new ForbiddenError();
-
-			const update = {
-				$set: newData,
-			};
-
-			const doc = await this.adapter.updateById(ctx.params.id, update);
-			const json = await this.transformDocuments(ctx, {}, doc);
-			this.entityChanged("updated", json, ctx);
-			return json;
-		},
-	},
-	list: {
-		auth: "required",
-		rest: "GET /",
-		async handler(ctx) {
-			const doc = await this.adapter.find({});
-			const json = await this.transformDocuments(ctx, {}, doc);
-			return json;
+		/**
+		 * List all boats
+		 * Auth is required!
+		 * @actions
+		 *
+		 */
+		list: {
+			auth: "required",
+			rest: "GET /",
+			async handler(ctx) {
+				const doc = await this.adapter.find({});
+				const json = await this.transformDocuments(ctx, {}, doc);
+				return false;
+			},
 		},
 	},
 

@@ -169,8 +169,7 @@ module.exports = {
 				if (!user)
 					throw new MoleculerClientError("User not found!", 400);
 
-				const doc = await this.transformDocuments(ctx, {}, user);
-				return await this.transformEntity(doc, true, ctx.meta.token);
+				return true;
 			},
 		},
 
@@ -296,10 +295,10 @@ module.exports = {
 		 * @param {String} username - Username
 		 * @returns {Object} User entity
 		 */
-		getall: {
+		list: {
 			rest: "GET /",
 			async handler(ctx) {
-				const users = await this.adapter.findOne();
+				const users = await this.adapter.find({});
 				if (!users)
 					throw new MoleculerClientError("Users not found!", 404);
 
