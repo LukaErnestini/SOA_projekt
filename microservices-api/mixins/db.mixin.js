@@ -59,6 +59,9 @@ module.exports = function (collection) {
 		},
 	};
 
+	// env variables set. Should be set somewhere else though... not sure where
+	process.env.MONGO_URI =
+		"mongodb+srv://luka-mongo-atlas:wDxbjqiP0HBjtqfpjUI0@cluster0.xmume.mongodb.net/SUA?retryWrites=true&w=majority";
 	if (process.env.MONGO_URI) {
 		// Mongo adapter
 		const MongoAdapter = require("moleculer-db-adapter-mongo");
