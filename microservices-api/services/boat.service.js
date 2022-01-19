@@ -128,6 +128,15 @@ module.exports = {
 			return json;
 		},
 	},
+	list: {
+		auth: "required",
+		rest: "GET /",
+		async handler(ctx) {
+			const doc = await this.adapter.find({});
+			const json = await this.transformDocuments(ctx, {}, doc);
+			return json;
+		},
+	},
 
 	/**
 	 * Methods
