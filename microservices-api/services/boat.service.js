@@ -182,6 +182,25 @@ module.exports = {
 				return json;
 			},
 		},
+
+		/**
+		 * delete owned boat by id
+		 * Auth is required!
+		 * @actions
+		 * @param {String} id - Boat ID
+		 *
+		 */
+		removeMyBoat: {
+			auth: "required",
+			rest: "DELETE /:id",
+			params: {
+				id: { type: "any" },
+			},
+			async handler(ctx) {
+				const res = await this.adapter.removeById(ctx.params.id);
+				await this.entityChanged("removed", res, ctx);
+			},
+		},
 	},
 
 	/**
