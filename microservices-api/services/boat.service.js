@@ -160,10 +160,25 @@ module.exports = {
 			rest: "GET /mine",
 			async handler(ctx) {
 				// TODO ERROR: find() query not working !! only with findOne it works, otherwise ignored
-				const doc = await this.adapter.findOne({
+				const doc = await this.adapter.find({
 					ownerID: ctx.meta.userID,
 				});
-				const json = await this.transformDocuments(ctx, {}, doc);
+				this.logger.info("doc: ", doc);
+				this.logger.info("doc: ", ctx.meta.userID);
+
+				// get rid of boats without owners
+				let filtered = doc.filter((el) => {
+					return el.ownerID !== null;
+				});
+
+				filtered = filtered.filter((el) => {
+					return (
+						el.ownerID.toString().trim() ==
+						ctx.meta.userID.toString().trim()
+					);
+				});
+
+				const json = await this.transformDocuments(ctx, {}, filtered);
 				return json;
 			},
 		},
