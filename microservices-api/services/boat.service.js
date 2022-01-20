@@ -136,6 +136,7 @@ module.exports = {
 		/**
 		 * List all boats
 		 * Auth is required!
+		 * Admin only
 		 * @actions
 		 *
 		 */
@@ -143,6 +144,9 @@ module.exports = {
 			auth: "required",
 			rest: "GET /",
 			async handler(ctx) {
+				await ctx.call("users.checkAdmin", {
+					isAdmin: ctx.meta.isAdmin,
+				});
 				const doc = await this.adapter.find({});
 				const json = await this.transformDocuments(ctx, {}, doc);
 				return json;
@@ -203,7 +207,7 @@ module.exports = {
 		},
 
 		/**
-		 * List all boats
+		 * List boats of user
 		 * Auth is required!
 		 * Admin only
 		 * @actions
@@ -215,11 +219,9 @@ module.exports = {
 			rest: "GET /user/:id",
 			async handler(ctx) {
 				// check if user is admin
-				this.logger.info("user: ", ctx.meta.isAdmin);
 				await ctx.call("users.checkAdmin", {
 					isAdmin: ctx.meta.isAdmin,
 				});
-				this.logger.info("I GET HERE");
 				// TODO ERROR: find() query not working !! only with findOne it works, otherwise ignored
 				const doc = await this.adapter.find({
 					ownerID: ctx.params.id,
