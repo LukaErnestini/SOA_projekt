@@ -245,6 +245,33 @@ module.exports = {
 				return json;
 			},
 		},
+
+		/**
+		 * delete user's boats
+		 * Auth is required!
+		 * Admin only
+		 * @actions
+		 * @param {String} id - user ID
+		 *
+		 */
+		removeUserBoats: {
+			auth: "required",
+			rest: "DELETE /user/:id",
+			params: {
+				id: { type: "any" },
+			},
+			async handler(ctx) {
+				// check if user is admin
+				await ctx.call("users.checkAdmin", {
+					isAdmin: ctx.meta.isAdmin,
+				});
+				// TODO fix does not work.
+				const res = await this.adapter.removeMany({
+					ownerID: ctx.params.id,
+				});
+				await this.entityChanged("removed", res, ctx);
+			},
+		},
 	},
 
 	/**
