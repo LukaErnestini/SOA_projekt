@@ -272,6 +272,40 @@ module.exports = {
 				await this.entityChanged("removed", res, ctx);
 			},
 		},
+
+		/**
+		 * Toggle trailer of boat
+		 * Auth is required!
+		 * @actions
+		 * @param {String} id - user ID
+		 *
+		 */
+		toggleTrailer: {
+			auth: "required",
+			rest: "PUT /toggleTrailer/:id",
+			params: {
+				id: { type: "any" },
+			},
+			async handler(ctx) {
+				const doc = await this.adapter.findById(ctx.params.id);
+
+				if (doc.hasTrailer)
+					await this.adapter.updateById(ctx.params.id, {
+						$set: {
+							hasTrailer: false,
+						},
+					});
+				else
+					await this.adapter.updateById(ctx.params.id, {
+						$set: {
+							hasTrailer: true,
+						},
+					});
+
+				const res = await this.adapter.findById(ctx.params.id);
+				return res;
+			},
+		},
 	},
 
 	/**
