@@ -110,7 +110,7 @@ module.exports = {
 				let newData = ctx.params.boat;
 				newData.updatedAt = new Date();
 
-				const boat = await this.findById(ctx.params.id);
+				const boat = await this.adapter.findById(ctx.params.id);
 				if (!boat)
 					throw new MoleculerClientError("Boat not found", 404);
 
