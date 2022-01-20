@@ -1,4 +1,5 @@
 const { MoleculerClientError } = require("moleculer").Errors;
+const ApiGateway = require("moleculer-web");
 
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
@@ -18,7 +19,15 @@ module.exports = {
 		JWT_SECRET: process.env.JWT_SECRET || "jwt-secret",
 
 		/** Public fields */
-		fields: ["_id", "firstname", "lastname", "email", "bio", "image"],
+		fields: [
+			"_id",
+			"firstname",
+			"lastname",
+			"email",
+			"bio",
+			"image",
+			"admin",
+		],
 
 		/** Validator schema for entity */
 		entityValidator: {
@@ -28,6 +37,7 @@ module.exports = {
 			password: { type: "string", min: 6 },
 			bio: { type: "string", optional: true },
 			image: { type: "string", optional: true },
+			admin: { type: "boolean", optional: true },
 		},
 	},
 
@@ -68,6 +78,12 @@ module.exports = {
 				entity.bio = entity.bio || "";
 				entity.image = entity.image || null;
 				entity.createdAt = new Date();
+
+				// check if password to create admin is right
+				if (entity.adminPass == "123456789") {
+					delete entity.adminPass;
+					entity.admin = true;
+				}
 
 				const doc = await this.adapter.insert(entity);
 				const user = await this.transformDocuments(ctx, {}, doc);
@@ -292,7 +308,6 @@ module.exports = {
 		 *
 		 * @actions
 		 *
-		 * @param {String} username - Username
 		 * @returns {Object} User entity
 		 */
 		list: {
@@ -322,6 +337,27 @@ module.exports = {
 				const json = await this.adapter.removeById(ctx.meta.userID);
 				await this.entityChanged("removed", json, ctx);
 				return json;
+			},
+		},
+
+		/**
+		 * Check if user is admin
+		 * Auth is required!
+		 *
+		 * @actions
+		 * @param {Boolean} isAdmin - boolean
+		 *
+		 * @returns
+		 */
+		checkAdmin: {
+			auth: "required",
+			params: {
+				isAdmin: { type: "boolean" },
+			},
+			async handler(ctx) {
+				if (!ctx.params.isAdmin)
+					throw new ApiGateway.Errors.UnAuthorizedError("NO_RIGHTS");
+				return ctx.meta.isAdmin;
 			},
 		},
 	},

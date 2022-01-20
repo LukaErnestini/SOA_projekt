@@ -163,8 +163,8 @@ module.exports = {
 				const doc = await this.adapter.find({
 					ownerID: ctx.meta.userID,
 				});
-				this.logger.info("doc: ", doc);
-				this.logger.info("doc: ", ctx.meta.userID);
+				// this.logger.info("doc: ", doc);
+				// this.logger.info("doc: ", ctx.meta.userID);
 
 				// get rid of boats without owners
 				let filtered = doc.filter((el) => {
@@ -207,18 +207,25 @@ module.exports = {
 		 * Auth is required!
 		 * Admin only
 		 * @actions
+		 * @param {String} id - User ID
 		 *
 		 */
 		boatsOfUser: {
 			auth: "required",
-			rest: "GET /mine",
+			rest: "GET /user/:id",
 			async handler(ctx) {
+				// check if user is admin
+				this.logger.info("user: ", ctx.meta.isAdmin);
+				await ctx.call("users.checkAdmin", {
+					isAdmin: ctx.meta.isAdmin,
+				});
+				this.logger.info("I GET HERE");
 				// TODO ERROR: find() query not working !! only with findOne it works, otherwise ignored
 				const doc = await this.adapter.find({
-					ownerID: ctx.meta.userID,
+					ownerID: ctx.params.id,
 				});
-				this.logger.info("doc: ", doc);
-				this.logger.info("doc: ", ctx.meta.userID);
+				// this.logger.info("doc: ", doc);
+				// this.logger.info("doc: ", ctx.meta.userID);
 
 				// get rid of boats without owners
 				let filtered = doc.filter((el) => {
@@ -228,7 +235,7 @@ module.exports = {
 				filtered = filtered.filter((el) => {
 					return (
 						el.ownerID.toString().trim() ==
-						ctx.meta.userID.toString().trim()
+						ctx.params.id.toString().trim()
 					);
 				});
 

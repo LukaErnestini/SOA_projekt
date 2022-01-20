@@ -160,6 +160,8 @@ module.exports = {
 						ctx.meta.user = _.pick(user, ["_id", "email", "image"]);
 						ctx.meta.token = token;
 						ctx.meta.userID = user._id;
+						if ("admin" in user) ctx.meta.isAdmin = user.admin;
+						else ctx.meta.isAdmin = false;
 					}
 				} catch (err) {
 					// Ignored because we continue processing if user doesn't exists
